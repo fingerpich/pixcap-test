@@ -1,0 +1,20 @@
+{
+  "name": "pixcap-frontend-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./test.ts",
+  "scripts": {
+    "test": "ts-mocha -p ./tsconfig.json ./test.ts"
+  },
+  "author": "zarei.bs@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@types/expect": "^24.3.0",
+    "@types/mocha": "^9.0.0",
+    "ts-mocha": "^8.0.0",
+    "chai": "^4.3.4",
+    "typescript": "^4.4.3"
+  }
+}
