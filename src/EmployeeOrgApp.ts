@@ -1,6 +1,7 @@
 import History from "./History"
-import { EmployeeSupervisor, Employee, IEmployeeOrgApp } from "./types"
-import { findEmployeeInTree } from "./find-in-tree"
+import { EmployeeSupervisor, Employee, IEmployeeOrgApp, MoveAction } from "./types"
+import { findEmployeeInTree } from "./utils/find-in-tree"
+import { convertListToLookup } from "./utils/convert-to-lookup";
 
 
 export default class EmployeeOrgApp implements IEmployeeOrgApp{
@@ -12,8 +13,8 @@ export default class EmployeeOrgApp implements IEmployeeOrgApp{
   * @param organizationChartTree
   */ 
   constructor(organizationChartTree: Employee) {
-    this.ceo = organizationChartTree;
-    this.history = new History(this.ceo);
+    this.ceo = convertListToLookup(organizationChartTree);
+    this.history = new History();
   }
 
   /** 
@@ -30,7 +31,7 @@ export default class EmployeeOrgApp implements IEmployeeOrgApp{
   * E.g. move Bob (employeeID) to be subordinate of Georgina (supervisorID). * @param employeeID 
   * @param supervisorID 
   */ 
-  move(employeeID: number, supervisorID: number): void {
+  move(employeeID: number, supervisorID: number, isRedo?:boolean): void {
     const { supervisor, employee } = this.findEmployee(employeeID)
     const { employee: nextSupervisor } = this.findEmployee(supervisorID)
 
@@ -38,26 +39,50 @@ export default class EmployeeOrgApp implements IEmployeeOrgApp{
     if (!supervisor) { throw `According to the given algorithem we are not able to move the root node` }
     if (!nextSupervisor) { throw `There is not any supervisor with ID ${employeeID}` }
 
-    const index = supervisor.subordinates.findIndex(emp => emp.uniqueId === employeeID)
-    supervisor.subordinates.splice(index, 1); // removes employee from previous list
-    supervisor.subordinates = [ ...supervisor.subordinates, ...employee.subordinates ]; //adds child subordinates to the parent subordinates 
-    nextSupervisor.subordinates.push(employee);
-    employee.subordinates = [];
+    delete supervisor.subordinates[employeeID]
+    supervisor.subordinates = {...supervisor.subordinates, ...employee.subordinates }; //adds child subordinates to the parent subordinates 
+    nextSupervisor.subordinates[employeeID] = employee;
+    employee.subordinates = {};
 
-    this.history.add(this.ceo);
+    if (!isRedo) {
+      const action: MoveAction = {
+        employeeID,
+        prevSupervisorID: supervisor.uniqueId,
+        nextSupervisorID: supervisorID,
+        employeeSubordinatesIds: Object.keys(employee.subordinates)
+      }
+      this.history.add(action)
+    }
   };
 
   /** 
   * Undo last move action 
   */ 
   undo(): void {
-    this.ceo = this.history.undo()
+    const action = this.history.undo()
+    if (action) {
+      const { employeeID, prevSupervisorID, employeeSubordinatesIds } = action
+      const { employee: curSupervisor } = this.findEmployee(prevSupervisorID)
+      const { supervisor: nextSupervisor, employee: movedEmployee } = this.findEmployee(employeeID)
+
+      delete nextSupervisor.subordinates[movedEmployee.uniqueId]
+      employeeSubordinatesIds.forEach(id => {
+        const item = curSupervisor.subordinates[id]
+        movedEmployee.subordinates[item.uniqueId] = item
+        delete curSupervisor.subordinates[id]
+      })
+      curSupervisor.subordinates[movedEmployee.uniqueId] = movedEmployee
+    }
   };
 
   /** 
-  * Redo last undone action 
+  * Redo last undone action
   */ 
   redo(): void {
-    this.ceo = this.history.redo()
+    const action = this.history.redo()
+    if (action) {
+      const { employeeID, nextSupervisorID } = action
+      this.move(employeeID, nextSupervisorID, true)
+    }
   };
 }

@@ -1,12 +1,19 @@
 export interface Employee { 
   uniqueId: number; 
   name: string; 
-  subordinates: Employee[]; 
+  subordinates: Object; 
 }
 
 export interface EmployeeSupervisor { 
   employee?: Employee; 
   supervisor?: Employee; 
+}
+
+export interface MoveAction { 
+  employeeID: number; 
+  prevSupervisorID: number; 
+  nextSupervisorID: number; 
+  employeeSubordinatesIds: string[]; 
 }
 
 export interface IEmployeeOrgApp { 
@@ -16,7 +23,7 @@ export interface IEmployeeOrgApp {
   * E.g. move Bob (employeeID) to be subordinate of Georgina (supervisorID). * @param employeeID 
   * @param supervisorID 
   */ 
-  move(employeeID: number, supervisorID: number): void; 
+  move(employeeID: number, supervisorID: number, isRedo?: boolean): void; 
   /** 
   * Undo last move action 
   */ 
