@@ -6,7 +6,7 @@ export const HEIGHT = 450;
 
 export function updateD3Tree(svg: any, tree: any, nextEmployeeID:number, nextSupervisorID: number) {
   const treeData = convertLookupToList(tree)
-  const treemap = d3.tree().size([HEIGHT, WIDTH]);
+  const treemap = d3.tree().size([HEIGHT, WIDTH-100]);
   let h = d3.hierarchy(treeData, d => d.subordinates);
   const nodes = treemap(h);
 

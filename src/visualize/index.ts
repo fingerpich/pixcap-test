@@ -63,7 +63,7 @@ function randomfill() {
 randomfill()
 
 const svg = body.append("svg")
-  .attr("viewBox", "0 0 900 450")
+  .attr("viewBox", `0 0 ${WIDTH} ${HEIGHT}`)
   .attr("preserveAspectRatio", "xMinYMin meet")
   .attr("width", WIDTH)
   .attr("height", HEIGHT)
