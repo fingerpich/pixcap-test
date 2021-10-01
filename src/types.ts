@@ -1,7 +1,7 @@
 export interface Employee { 
   uniqueId: number; 
   name: string; 
-  subordinates: Object; 
+  subordinates: any; 
 }
 
 export interface EmployeeSupervisor { 

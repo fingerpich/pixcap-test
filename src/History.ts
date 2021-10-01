@@ -31,10 +31,10 @@ export default class History {
   * undo the last action
   */ 
   undo(): MoveAction {
-    if (this.pointer > 0) {
+    if (this.pointer > -1) {
       this.pointer--;
     }
-    return this.history[this.pointer]
+    return this.history[this.pointer+1]
   };
   
   /** 

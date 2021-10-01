@@ -22,8 +22,8 @@ export default class EmployeeOrgApp implements IEmployeeOrgApp{
   * searches the tree using a recursive function
   * @param employeeID 
   */ 
-  findEmployee(employeeID): EmployeeSupervisor {
-    return findEmployeeInTree(this.ceo, employeeID, null) || {};
+  findEmployee(employeeID: number): EmployeeSupervisor {
+    return findEmployeeInTree(this.ceo, employeeID) || {};
   }
 
   /** 
@@ -32,6 +32,7 @@ export default class EmployeeOrgApp implements IEmployeeOrgApp{
   * @param supervisorID 
   */ 
   move(employeeID: number, supervisorID: number, isRedo?:boolean): void {
+    if (employeeID == supervisorID) {return}
     const { supervisor, employee } = this.findEmployee(employeeID)
     const { employee: nextSupervisor } = this.findEmployee(supervisorID)
 
@@ -42,6 +43,7 @@ export default class EmployeeOrgApp implements IEmployeeOrgApp{
     delete supervisor.subordinates[employeeID]
     supervisor.subordinates = {...supervisor.subordinates, ...employee.subordinates }; //adds child subordinates to the parent subordinates 
     nextSupervisor.subordinates[employeeID] = employee;
+    const employeeSubordinatesIds = Object.keys(employee.subordinates)
     employee.subordinates = {};
 
     if (!isRedo) {
@@ -49,7 +51,7 @@ export default class EmployeeOrgApp implements IEmployeeOrgApp{
         employeeID,
         prevSupervisorID: supervisor.uniqueId,
         nextSupervisorID: supervisorID,
-        employeeSubordinatesIds: Object.keys(employee.subordinates)
+        employeeSubordinatesIds
       }
       this.history.add(action)
     }
@@ -64,10 +66,17 @@ export default class EmployeeOrgApp implements IEmployeeOrgApp{
       const { employeeID, prevSupervisorID, employeeSubordinatesIds } = action
       const { employee: curSupervisor } = this.findEmployee(prevSupervisorID)
       const { supervisor: nextSupervisor, employee: movedEmployee } = this.findEmployee(employeeID)
+      
+      if (!movedEmployee) { throw `There is not any employee with ID ${employeeID}` }
+      if (!curSupervisor) { throw `According to the given algorithem we are not able to move the root node` }
+      if (!nextSupervisor) { throw `There is not any supervisor with ID ${employeeID}` }
 
       delete nextSupervisor.subordinates[movedEmployee.uniqueId]
       employeeSubordinatesIds.forEach(id => {
         const item = curSupervisor.subordinates[id]
+        if (!item) {
+          console.log(id, employeeSubordinatesIds, curSupervisor.subordinates)
+        }
         movedEmployee.subordinates[item.uniqueId] = item
         delete curSupervisor.subordinates[id]
       })
